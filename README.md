@@ -128,5 +128,33 @@ $  sudo make install
 ```
 Now that we have all the necessary tools installed let's understand the design flow!
 
+# Verifying the installation of open source tools
+An initial working directory can be made by copying the required files as follows:
+```
+$ mkdir Lab1_and
+$ cd Lab1_and
+$ mkdir mag
+$ mkdir netgen
+$ mkdir xschem
+$ cd xschem
+$ cp /usr/local/share/pdk/sky130A/libs.tech/xschem/xschemrc .
+$ cp /usr/local/share/pdk/sky130A/libs.tech/ngspice/spinit .spiceinit
+$ cd ../mag
+$ cp /usr/local/share/pdk/sky130A/libs.tech/magic/sky130A.magicrc .magicrc
+$ cd ../netgen
+$ cp /usr/local/share/pdk/sky130A/libs.tech/netgen//sky130A_setup.tcl .
+```
+Checking if magic works
+![Screenshot from 2023-02-12 08-07-06](https://user-images.githubusercontent.com/65780913/218290703-f27de2e5-83b7-4a33-8b4d-ac3e9a818ece.png)
+
+Checking if xschem works
+![Screenshot from 2023-02-12 08-09-59](https://user-images.githubusercontent.com/65780913/218290782-9e1e3177-bf64-478f-a78f-e317e83c81b4.png)
+
+Checking if netgen works
+![Screenshot from 2023-02-12 08-11-18](https://user-images.githubusercontent.com/65780913/218290833-41535f66-15f2-4022-ac45-fcd130a6cb01.png)
+
+Checking if ngspice works
+![Screenshot from 2023-02-12 08-12-21](https://user-images.githubusercontent.com/65780913/218290870-d6616286-d53a-4797-8ad9-21ae73e11d43.png)
+
 
 
