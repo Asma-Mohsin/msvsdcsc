@@ -172,7 +172,8 @@ Now in order to test that our inverter is actually working, we create a test ben
 ![Screenshot from 2023-02-12 08-29-33](https://user-images.githubusercontent.com/65780913/218291891-67f753b7-8587-4c39-b8f3-57658ba1df59.png)
 
 ## Simulations Results
-![Screenshot from 2023-02-09 15-02-05](https://user-images.githubusercontent.com/65780913/218291918-8cd3a1b8-f555-44b7-8aee-36617982259e.png)
+![Screenshot from 2023-02-12 08-30-45](https://user-images.githubusercontent.com/65780913/218292161-300dc021-d90b-4a71-8c08-1f5a340e30bc.png)
+
 ![Screenshot from 2023-02-12 08-36-29](https://user-images.githubusercontent.com/65780913/218291932-7646165c-3a61-4afe-a402-eef5fbd2d922.png)
 
 Rise time= 10ns
@@ -182,6 +183,162 @@ Fall time = 10ns
 Time period = 1u
 
 Delay between vin and vout= 2.502us -2.50132us = 68ns
+
+# Inverter post layout characterization using magic
+Open magic by going to mag directory and type
+```
+magic -d XR
+```
+
+Now go to file, and click on import spice and select inverter.spice file present in /home/.xschem folde. You will get pmos and nmos loaded. Now you have to make connections to make an inverter. Do all the connections and clear all DRCs.
+![Screenshot from 2023-02-11 23-59-10](https://user-images.githubusercontent.com/65780913/218292449-7a22e3d9-1913-4648-a65b-1f6910925e70.png)
+
+Now open the tcl window and write these commands to generate netlist.
+```
+% extract do local
+% extract all
+% ext2spice lvs
+% ext2spice
+```
+If we run an ls in this directory we should see our .ext files and .mag files for the circuit - inverter.mag inverter.ext We can also see a .spice netlist. This inverter.spice netlist generated post layout contains the parasitics that were absent in pre-layout netlist.
+![Screenshot from 2023-02-12 09-10-23](https://user-images.githubusercontent.com/65780913/218292600-4c2c208f-cecc-4677-8a1f-348a3b2fb3c7.png)
+
+Now we need to use our pre-layout spice witht he post-layout parasitics netlist and perform spice simulations.
+
+ Step I Paste the pre-layout netlist of inverter testbench into the magic generated inverter spice netlist
+ 
+ ## Pre-layout spice netlist of inverter_tb
+ ```
+ ** sch_path: /home/asma_mohsin/Desktop/Lab1_and/xschem/inverter_tb.sch
+**.subckt inverter_tb in out
+*.ipin in
+*.opin out
+x1 net1 in out GND inverter
+V2 net1 GND 1.8
+.save i(v2)
+V1 in GND pulse(0 1.8 0 1n 1n 500n 1u 0)
+.save i(v1)
+**** begin user architecture code
+
+.lib /usr/local/share/pdk/sky130A/libs.tech/ngspice/sky130.lib.spice tt
+
+
+.control
+save all
+tran 100n 10u
+plot v(in) v(out)
+.endc
+
+**** end user architecture code
+**.ends
+
+* expanding   symbol:  inverter.sym # of pins=4
+** sym_path: /home/asma_mohsin/Desktop/Lab1_and/xschem/inverter.sym
+** sch_path: /home/asma_mohsin/Desktop/Lab1_and/xschem/inverter.sch
+.subckt inverter vdd vin vout vss
+*.ipin vin
+*.opin vout
+*.iopin vdd
+*.iopin vss
+XM1 vout vin vss vss sky130_fd_pr__nfet_01v8 L=0.18 W=4.5 nf=3 ad='int((nf+1)/2) * W/nf * 0.29' as='int((nf+2)/2) * W/nf * 0.29'
++ pd='2*int((nf+1)/2) * (W/nf + 0.29)' ps='2*int((nf+2)/2) * (W/nf + 0.29)' nrd='0.29 / W' nrs='0.29 / W'
++ sa=0 sb=0 sd=0 mult=1 m=1
+XM2 vout vin vdd VDD sky130_fd_pr__pfet_01v8 L=0.18 W=3 nf=3 ad='int((nf+1)/2) * W/nf * 0.29' as='int((nf+2)/2) * W/nf * 0.29'
++ pd='2*int((nf+1)/2) * (W/nf + 0.29)' ps='2*int((nf+2)/2) * (W/nf + 0.29)' nrd='0.29 / W' nrs='0.29 / W'
++ sa=0 sb=0 sd=0 mult=1 m=1
+.ends
+
+.GLOBAL GND
+.end
+```
+After selectively pasting this netlist into the inverter.spice generated(extracted) from Magic Tool, save it as inverter_tb_magic.spice. The netlist looks like this
+
+```
+* NGSPICE file created from inverter.ext - technology: sky130A
+** sch_path: /home/asma_mohsin/Desktop/Lab1_and/xschem/inverter_tb.sch
+**.subckt inverter_tb in out
+*.ipin in
+*.opin out
+x1 net1 in out GND inverter
+V2 net1 GND 1.8
+.save i(v2)
+V1 in GND pulse(0 1.8 0 10n 10n 500n 1u 0)
+.save i(v1)
+**** begin user architecture code
+
+.lib /usr/local/share/pdk/sky130A/libs.tech/ngspice/sky130.lib.spice tt
+
+
+.control
+save all
+tran 100n 10u
+plot v(in) v(out)
+.endc
+
+**** end user architecture code
+**.ends
+
+* expanding   symbol:  inverter.sym # of pins=4
+** sym_path: /home/asma_mohsin/Desktop/Lab1_and/xschem/inverter.sym
+** sch_path: /home/asma_mohsin/Desktop/Lab1_and/xschem/inverter.sch
+.subckt inverter vdd vin vout vss
+*.ipin vin
+*.opin vout
+*.iopin vdd
+*.iopin vss
+XM1 vout vin vss vss sky130_fd_pr__nfet_01v8 L=0.18 W=4.5 nf=3 ad='int((nf+1)/2) * W/nf * 0.29' as='int((nf+2)/2) * W/nf * 0.29'
++ pd='2*int((nf+1)/2) * (W/nf + 0.29)' ps='2*int((nf+2)/2) * (W/nf + 0.29)' nrd='0.29 / W' nrs='0.29 / W'
++ sa=0 sb=0 sd=0 mult=1 m=1
+XM2 vout vin vdd VDD sky130_fd_pr__pfet_01v8 L=0.18 W=3 nf=3 ad='int((nf+1)/2) * W/nf * 0.29' as='int((nf+2)/2) * W/nf * 0.29'
++ pd='2*int((nf+1)/2) * (W/nf + 0.29)' ps='2*int((nf+2)/2) * (W/nf + 0.29)' nrd='0.29 / W' nrs='0.29 / W'
++ sa=0 sb=0 sd=0 mult=1 m=1
+.ends
+
+.GLOBAL GND
+.end
+
+.subckt sky130_fd_pr__nfet_01v8_N39HBR a_n33_172# a_n275_n324# a_18_n150# a_114_n150#
++ a_n129_n238# a_63_n238# a_n78_n150# a_n173_n150#
+X0 a_114_n150# a_63_n238# a_18_n150# a_n275_n324# sky130_fd_pr__nfet_01v8 ad=4.425e+11p pd=3.59e+06u as=4.5e+11p ps=3.6e+06u w=1.5e+06u l=180000u
+X1 a_n78_n150# a_n129_n238# a_n173_n150# a_n275_n324# sky130_fd_pr__nfet_01v8 ad=4.5e+11p pd=3.6e+06u as=4.425e+11p ps=3.59e+06u w=1.5e+06u l=180000u
+X2 a_18_n150# a_n33_172# a_n78_n150# a_n275_n324# sky130_fd_pr__nfet_01v8 ad=0p pd=0u as=0p ps=0u w=1.5e+06u l=180000u
+.ends
+
+.subckt sky130_fd_pr__pfet_01v8_KG2LE3 a_n78_n100# a_n173_n100# a_n129_n197# a_18_n100#
++ a_63_n197# a_114_n100# w_n311_n319# a_n33_131#
+X0 a_18_n100# a_n33_131# a_n78_n100# w_n311_n319# sky130_fd_pr__pfet_01v8 ad=3e+11p pd=2.6e+06u as=3e+11p ps=2.6e+06u w=1e+06u l=180000u
+X1 a_114_n100# a_63_n197# a_18_n100# w_n311_n319# sky130_fd_pr__pfet_01v8 ad=2.95e+11p pd=2.59e+06u as=0p ps=0u w=1e+06u l=180000u
+X2 a_n78_n100# a_n129_n197# a_n173_n100# w_n311_n319# sky130_fd_pr__pfet_01v8 ad=0p pd=0u as=2.95e+11p ps=2.59e+06u w=1e+06u l=180000u
+.ends
+
+.subckt inverter vdd vout
+Xsky130_fd_pr__nfet_01v8_N39HBR_2 a_90_1528# VSUBS vout vss a_90_1528# a_90_1528#
++ vss vout sky130_fd_pr__nfet_01v8_N39HBR
+Xsky130_fd_pr__pfet_01v8_KG2LE3_0 vdd vout a_90_1528# vout a_90_1528# vdd w_80_1786#
++ a_90_1528# sky130_fd_pr__pfet_01v8_KG2LE3
+.ends
+```
+Now open this file with ngspice. Also place .spiceinit file in this directory to perform the simulations without any error
+![Screenshot from 2023-02-12 09-27-09](https://user-images.githubusercontent.com/65780913/218292989-03fa81b3-05a2-4d9d-9cc0-cc8dc58e3cb8.png)
+
+Now run the following commands in the ngspice window
+```
+run
+dsiplay   //list of plots available
+plot vin vout
+```
+![Screenshot from 2023-02-12 09-31-55](https://user-images.githubusercontent.com/65780913/218293101-d9daffd4-2005-46a0-ad21-9263b1b7514e.png)
+
+![Screenshot from 2023-02-12 09-31-35](https://user-images.githubusercontent.com/65780913/218293114-8c03858f-47c5-42ac-827c-d1abb3ad1d47.png)
+
+Rise time= 10ns
+
+Fall time = 10ns
+
+Time period = 1u
+
+Delay between vin and vout= 2.005us -2.0023us = 2.7ns
+
 
 
 
