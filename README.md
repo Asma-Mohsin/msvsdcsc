@@ -157,4 +157,31 @@ Checking if ngspice works
 ![Screenshot from 2023-02-12 08-12-21](https://user-images.githubusercontent.com/65780913/218290870-d6616286-d53a-4797-8ad9-21ae73e11d43.png)
 
 
+# Inverter pre-layout characterization using xschem and ngspice
+## Creating invereter using xscheme
+Create this schematic using xschem. Then click on netlist to generate netlist and save file as inverter.sch.
+
+![Screenshot from 2023-02-12 08-29-26](https://user-images.githubusercontent.com/65780913/218291635-6905365c-3153-41db-8832-b2396c503ffb.png)
+
+## Generate symbol of inverter
+Now in order to generate the symbol, create a box on inverter in inverter.sch, press A and check yes. It will make inverter.sym file in the same directory.
+![Screenshot from 2023-02-12 08-29-29](https://user-images.githubusercontent.com/65780913/218291761-8a3396f1-91ea-4eea-a53f-3d83dcab7a4a.png)
+
+## Create test bench for inverter
+Now in order to test that our inverter is actually working, we create a test bench as shown below. press ctrl+i to open choose devices window. After creating test bench, again click on netlist and then simulate. You might get error so what you should do is put the .spiceinit present in your current xschem folder file in home-> .xschem -> simulation folder
+![Screenshot from 2023-02-12 08-29-33](https://user-images.githubusercontent.com/65780913/218291891-67f753b7-8587-4c39-b8f3-57658ba1df59.png)
+
+## Simulations Results
+![Screenshot from 2023-02-09 15-02-05](https://user-images.githubusercontent.com/65780913/218291918-8cd3a1b8-f555-44b7-8aee-36617982259e.png)
+![Screenshot from 2023-02-12 08-36-29](https://user-images.githubusercontent.com/65780913/218291932-7646165c-3a61-4afe-a402-eef5fbd2d922.png)
+
+Rise time= 10ns
+
+Fall time = 10ns
+
+Time period = 1u
+
+Delay between vin and vout= 2.502us -2.50132us = 68ns
+
+
 
